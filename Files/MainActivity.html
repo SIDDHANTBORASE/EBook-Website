@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>E-Book Library</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            background-image: url('Bg_image_for.jpg'); /* Replace with your image path */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            font-family: Arial, sans-serif;
+        }
+
+        .label-container {
+            margin-top: 20px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .dynamic-label {
+            font-size: 40px;
+            font-weight: bold;
+            color: rgb(211, 211, 211);
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            background-color: rgb(16, 68, 121);
+            padding: 20px;
+            border-radius: 10px;
+            border: 3px solid #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .controls-container {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            border: 3px solid #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .category-select, .search-input, .search-button, .reset-button {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 2px solid rgba(74, 144, 226, 0.8);
+        }
+
+        .search-button, .reset-button {
+            background-color: rgba(74, 144, 226, 0.8);
+            color: white;
+            cursor: pointer;
+        }
+
+        .search-button:hover, .reset-button:hover {
+            background-color: rgba(74, 144, 226, 1);
+        }
+
+        .main-container {
+            display: flex;
+            width: 80%;
+            height: calc(100% - 150px); /* Adjust height to occupy remaining space */
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        /* Book display section */
+        .book-container {
+            flex: 2;
+            overflow-y: auto;
+            padding-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            border-radius: 10px;
+            border: 2px solid rgb(0, 13, 28);
+            background-color: rgba(255, 255, 255, 0.9);
+            max-height: 530px; /* Ensure it doesn't overflow */
+            padding: 10px;
+        }
+
+        .book-card {
+            width: 150px;
+            border-radius: 10px;
+            padding: 10px;
+            
+            border-radius: 10px;
+            border: 2px solid rgba(0, 13, 28, 0.546);
+            transition: transform 0.3s;
+            cursor: pointer;
+            max-height: 250px;
+        }
+
+        .book-card:hover {
+            transform: scale(1.05);
+        }
+
+        .book-image {
+            width: 100px;
+            height: 150px;
+            border-radius: 5px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .read-book-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: rgba(74, 144, 226, 0.8);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .read-book-button:hover {
+            background-color: rgba(74, 144, 226, 1);
+        }
+
+        /* Book info section */
+        .book-info-container {
+            flex: 1;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            border: 2px solid rgb(0, 13, 28);
+            position: relative;
+            overflow-y: auto; /* Enable vertical scrollbar */
+            max-height: 510px;
+        }
+
+        .book-info-container img {
+            width: 150px;
+            height: 200px;
+            border-radius: 5px;
+            display: block;
+            margin: 0 auto 10px;
+        }
+
+        .book-info {
+            text-align: center;
+        }
+
+        .book-info h4 {
+            margin-bottom: 10px;
+            font-size: 20px;
+            color: #333;
+        }
+
+        .book-info p {
+            margin-bottom: 20px;
+            font-size: 16px;
+            color: #555;
+        }
+    </style>
+    <script>
+        let currentBook = null; // Track the currently displayed book info
+
+        function openPdf(pdfPath) {
+            window.open(pdfPath, '_blank');
+        }
+
+        function showBookInfo(bookTitle, bookImage, bookDescription,tpage,bookPath) {
+            const infoContainer = document.querySelector('.book-info-container');
+            const bookInfo = infoContainer.querySelector('.book-info');
+            infoContainer.querySelector('img').src = bookImage;
+            bookInfo.querySelector('h4').textContent = bookTitle;
+            bookInfo.querySelector('p').textContent = bookDescription;
+            path = bookPath;
+            document.getElementById('pageno').innerHTML = tpage;
+
+            // Update only if a different book is clicked
+            if (currentBook !== bookTitle) {
+                bookInfo.style.display = 'block';
+                currentBook = bookTitle; // Set the current book to the new one
+            }
+        }
+
+        // Show all books initially, then filter by category
+        function filterBooks() {
+            const category = document.getElementById('categorySelect').value.toLowerCase();
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const books = document.querySelectorAll('.book-card');
+
+            books.forEach(book => {
+                const bookCategory = book.getAttribute('data-category').toLowerCase();
+                const bookTitle = book.getAttribute('data-title').toLowerCase();
+
+                if ((category === '' || bookCategory === category) && 
+                    (searchTerm === '' || bookTitle.includes(searchTerm))) {
+                    book.style.display = 'block';
+                } else {
+                    book.style.display = 'none';
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('searchButton').addEventListener('click', filterBooks);
+            document.getElementById('resetButton').addEventListener('click', function() {
+                document.getElementById('categorySelect').selectedIndex = 0;
+                document.getElementById('searchInput').value = '';
+                filterBooks(); // Show all books again
+            });
+
+            document.getElementById('categorySelect').addEventListener('change', filterBooks);
+        });
+    </script>
+</head>
+<body>
+    <div class="label-container" id="labelContainer"></div>
+
+    <div class="controls-container">
+        <select class="category-select" id="categorySelect">
+            <option value="" disabled selected>Select a category</option>
+            <option value="finance">Finance</option>
+            <option value="education">Education</option>
+            <option value="adventure">Adventure</option>
+            <option value="science">Science</option>
+        </select>
+
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search for books...">
+            <button class="search-button" id="searchButton">Search</button>
+        </div>
+        <button class="reset-button" id="resetButton">Reset</button>
+    </div>
+
+    <div class="main-container">
+        <!-- Book display section -->
+        <div class="book-container" id="bookContainer">
+            <div class="book-card" data-category="finance" data-title="The Future of Finance" onclick="showBookInfo('The Future of Finance', 'Future of Finance.jpg', 'A deep dive into the future of finance and economy.','200' ,'https://drive.google.com/file/d/1WxPj5OIkGzuI3_eEypDPucpi8gqlPHgU/view?usp=sharing')">
+                <img src="Future of Finance.jpg" alt="The Future of Finance" class="book-image">
+                <h4>The Future of Finance</h4>
+            </div>
+            <div class="book-card" data-category="finance" data-title="History of Money" onclick="showBookInfo('History of Money', 'History of Money.jpg', 'A classic novel about the American Dream.', 'https://drive.google.com/file/d/1tJ52f8eBkOSmSGxMs4FpR9Krx8ER98bR/view?usp=drive_link')">
+                <img src="History of Money.jpg" alt="History of Money" class="book-image">
+                <h4>History of Money</h4>
+            </div>
+            <div class="book-card" data-category="Education" data-title="Software Testing" onclick="showBookInfo('Software Testing', 'Software Testing.jpg', 'A gripping tale of justice in the American South.','https://drive.google.com/file/d/1vCPMDXvrB8ggIHz6m_iCkJufMRtahXzq/view?usp=drive_link')">
+                <img src="Software Testing.jpg" alt="Software Testing" class="book-image">
+                <h4>Software Testing</h4>
+            </div>
+            <div class="book-card" data-category="Education" data-title="Advance Computer Network" onclick="showBookInfo('Advance Computer Network', 'Advance Computer Network.jpg', 'A gripping tale of justice in the American South.','https://drive.google.com/file/d/1WxPj5OIkGzuI3_eEypDPucpi8gqlPHgU/view?usp=drive_link')">
+                <img src="Advance Computer Network.jpg" alt="Advance Computer network" class="book-image">
+                <h4>Advance Computer Network</h4>
+            </div>
+            <div class="book-card" data-category="Education" data-title="Enviromental Studies" onclick="showBookInfo('Enviromental Studies', 'Enviromental Studies.jpg', 'A gripping tale of justice in the American South.','https://drive.google.com/file/d/1oQ3BZsWZkz876hbRZwIPOb3G5x-cuJI8/view?usp=drive_link')">
+                <img src="Enviromental Studies.jpg" alt="Enviromental Studies" class="book-image">
+                <h4>Enviromental Studies</h4>
+            </div>
+            <div class="book-card" data-category="Education" data-title="Basics of Robotics" onclick="showBookInfo('Basics of Robotics', 'Basics of Robotics.jpg', 'A gripping tale of justice in the American South.','https://drive.google.com/file/d/1yB5M66CtsrnUow9xuqqVco_XdAGN2tzI/view?usp=drive_link')">
+                <img src="Basics of Robotics.jpg" alt="Software Testing" class="book-image">
+                <h4>Basics of Robotics</h4>
+            </div>
+
+            <div class="book-card" data-category="adventure" data-title="The Iceland of Adventure" onclick="showBookInfo('The Iceland of Adventure', 'The Iceland of Adventure.jpg', 'A memoir about a woman who grows up in a strict and abusive household in rural Idaho.','https://drive.google.com/file/d/1WGKoVFK7HO6k6ir3iR4q15YebrQaS4rs/view?usp=drive_link')">
+                <img src="The Iceland of Adventure.jpg" alt="Educated" class="book-image">
+                <h4>The Island of Adventure</h4>
+            </div>
+            <div class="book-card" data-category="adventure" data-title="THE LIFE ADVENTURES AND PIRACIES OF THE FAMOUS CAPTAIN SINGLETON" onclick="showBookInfo('THE LIFE ADVENTURES AND PIRACIES OF THE FAMOUS CAPTAIN SINGLETON', 'THE LIFE ADVENTURES.jpg', 'A brief history of humankind, from the Stone Age to the modern age.','https://drive.google.com/file/d/1vPPCn-mLeQp1T4xZoruKEJ1uFJ3ds03j/view?usp=drive_link')">
+                <img src="THE LIFE ADVENTURES.jpg" alt="THE LIFE ADVENTURES AND PIRACIES OF THE FAMOUS CAPTAIN SINGLETON" class="book-image">
+                <h4>THE LIFE ADVENTURES AND PIRACIES OF THE FAMOUS CAPTAIN SINGLETON</h4>
+            </div>
+            <div class="book-card" data-category="adventure" data-title="The Call of the Wild" onclick="showBookInfo('The Call of the Wild', 'The Call of the Wild.jpg', 'The memoir of former First Lady Michelle Obama.','https://drive.google.com/file/d/1Yqt6xz60UfvKY-etH1kbCw03jxB_JZS1/view?usp=drive_link')">
+                <img src="The Call of the Wild.jpg" alt="The Call of the Wild" class="book-image">
+                <h4>The Call of the Wild</h4>
+            </div>
+            <div class="book-card" data-category="adventure" data-title="Among The Himalayas" onclick="showBookInfo('Among The Himalayas', 'Among The Himalayas.jpg', 'The memoir of former First Lady Michelle Obama.','https://drive.google.com/file/d/1qh2SPAA-A6EcU36fVb-CtM80ZMD-cmCc/view?usp=drive_link')">
+                <img src="Among The Himalayas.jpg" alt="Among The Himalayas" class="book-image">
+                <h4>Among The Himalayas</h4>
+            </div>
+            <div class="book-card" data-category="adventure" data-title="The Adventure of Blue Carbuncle" onclick="showBookInfo('The Adventure of Blue Carbuncle', 'The Adventure of Blue Carbuncle.jpg', 'The memoir of former First Lady Michelle Obama.','https://drive.google.com/file/d/1BpP5yd25LZGnp-JglZ8SDDdddtwM35Dm/view?usp=drive_link')">
+                <img src="The Adventure of Blue Carbuncle.jpg" alt="The Adventure of Blue Carbuncle" class="book-image">
+                <h4>The Adventure of Blue Carbuncle</h4>
+            </div>
+            
+
+            <div class="book-card" data-category="science" data-title="Engineering Physics" onclick="showBookInfo('Engineering Physics', 'Engineering Physics.jpg', 'Stephen Hawking’s classic book on cosmology.','https://drive.google.com/file/d/1e23mJFIjrCrp-KJkHGH1yKc9TvF8Brno/view?usp=drive_link')">
+                <img src="Engineering Physics.jpg" alt="Engineering Physics" class="book-image">
+                <h4>Engineering Physics</h4>
+            </div>
+            <div class="book-card" data-category="science" data-title="Engineering Chemistry" onclick="showBookInfo('Engineering Chemistry', 'Engineering Chemistry.jpg', 'A book by Richard Dawkins that popularized the gene-centered view of evolution.','https://drive.google.com/file/d/16RVc4berBbRXziiGZo0itspMwCecDX0F/view?usp=drive_link')">
+                <img src="Engineering Chemistry.jpg" alt="The Selfish Gene" class="book-image">
+                <h4>Engineering Chemistry</h4>
+            </div>
+            <div class="book-card" data-category="science" data-title="The Science of Nutrition " onclick="showBookInfo('The Science of Nutrition ', 'The Science of Nutrition.jpg', 'Stephen Hawking’s classic book on cosmology.','https://drive.google.com/file/d/1kYAxpH1BUws_s2V7ch7Ga42fTCg5onuD/view?usp=drive_link')">
+                <img src="The Science of Nutrition.jpg" alt="The Science of Nutrition " class="book-image">
+                <h4>The Science of Nutrition</h4>
+            </div>
+            
+            <div class="book-card" data-category="science" data-title="Harry Potter" onclick="showBookInfo('Harry Potter', 'Harry Potter.png', 'A book by Richard Dawkins that popularized the gene-centered view of evolution.','https://drive.google.com/file/d/1CkNJAq13j7OJOeUf049MDGaafb_Dr0dV/view?usp=drive_link')">
+                <img src="Harry Potter.png" alt="Harry Potter" class="book-image">
+                <h4>Harry Potter</h4>
+            </div>
+
+            <div class="book-card" data-category="science" data-title="World History 1930" onclick="showBookInfo('World History 1930', 'World History.png', 'A book by Richard Dawkins that popularized the gene-centered view of evolution.','https://drive.google.com/file/d/1GlxsvmsRNOl3F-VWR872pNbKYehGQXIN/view?usp=drive_link')">
+                <img src="World History.png" alt="World History 1930" class="book-image">
+                <h4>World History 1930</h4>
+            </div>
+            
+        </div>
+
+        <!-- Book info section -->
+        <div class="book-info-container">
+            <img src="" alt="Book Info" />
+            <div class="book-info" style="display: none;">
+                <h4></h4>
+                <p></p>
+                <button class="read-book-button" onclick="openPdf(path)">READ BOOK</button>
+                <h5>Pages:<p id="pageno"></p></h5>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Optional: Populate the labelContainer with a welcome message or dynamic content
+        document.getElementById('labelContainer').innerHTML = '<div class="dynamic-label">Welcome to E-Book Library</div>';
+    </script>
+</body>
+</html>
+
